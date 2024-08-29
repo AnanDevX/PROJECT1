@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome Page</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #FFD700; /* Gold background for a festive look */
+            background-image: url('https://img.freepik.com/premium-photo/shiny-yellow-balloons-frame-white-background_1027230-23115.jpg?size=626&ext=jpg&ga=GA1.1.1000554817.1723992511&semt=ais_hybrid'); /* Balloon image */
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
+            position: relative;
+        }
+        .button-container {
+            position: relative;
+            z-index: 1; /* Ensure button is on top of the canvas */
+        }
+        .welcome-button {
+            padding: 15px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #FF4500; /* Orange-Red color to match the birthday theme */
+            color: #FFFFFF; /* White */
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .gif-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            display: none;
+            animation: bounceIn 1.5s ease-in-out forwards;
+        }
+        .gif-container img {
+            border-radius: 20px; /* Smooth the edges */
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2); /* Add a soft shadow */
+        }
+        @keyframes bounceIn {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+            }
+            60% {
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+            80% {
+                transform: translate(-50%, -50%) scale(0.9);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            display: none; /* Hide canvas initially */
+        }
+        .birthday-text {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            text-align: center;
+            font-family: 'Brush Script MT', cursive; /* Fancy font */
+            font-size: 48px;
+            color: #FF4500; /* Matching the button color */
+            text-shadow: 2px 2px #FFFFFF; /* White shadow for better visibility */
+            z-index: 2; /* On top of everything */
+        }
+    </style>
+</head>
+<body>
+    <div class="birthday-text">Happy Birthday💖💖</div>
+    <div class="button-container">
+        <button class="welcome-button" id="welcomeButton">Celebrate!</button>
+    </div>
+    <canvas id="confettiCanvas"></canvas>
+    <div class="gif-container" id="gifContainer">
+        <img src="https://media.tenor.com/11dhoe0Y6zsAAAAM/happy-birthday-dance.gif" alt="">
+    </div>
+
+    <!-- Add the audio element --><!--https://www.pagalworld.com.sb/files/download/type/64/id/71233/1.mp3?1-->
+    <audio id="birthdayAudio" src=""></audio>
+
+    <script>
+        const button = document.getElementById('welcomeButton');
+        const canvas = document.getElementById('confettiCanvas');
+        const ctx = canvas.getContext('2d');
+        const gifContainer = document.getElementById('gifContainer');
+        const audio = document.getElementById('birthdayAudio'); // Get the audio element
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let confettiPieces = []; // Store all confetti pieces
+
+        function createConfettiPiece(x, y) {
+            const size = Math.random() * 10 + 5;
+            const angle = Math.PI + Math.random() * Math.PI; // Confetti moves downward
+            const speed = Math.random() * 5 + 2;
+            return {
+                x: x,
+                y: y,
+                size: size,
+                speed: speed,
+                angle: angle,
+                color: getRandomColor(),
+                opacity: 1, // Opacity for fading effect
+                fadeRate: Math.random() * 0.03 + 0.01, // Random fade rate
+            };
+        }
+
+        function drawConfettiPiece(piece) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.globalAlpha = piece.opacity; // Apply the opacity
+            ctx.rect(piece.x, piece.y, piece.size, piece.size);
+            ctx.fillStyle = piece.color;
+            ctx.fill();
+            ctx.closePath();
+            ctx.restore();
+        }
+
+        function updateConfettiPiece(piece) {
+            piece.x += Math.cos(piece.angle) * piece.speed;
+            piece.y += Math.sin(piece.angle) * piece.speed;
+            piece.opacity -= piece.fadeRate; // Decrease opacity to create fade effect
+            if (piece.opacity <= 0 || piece.y > canvas.height) {
+                piece.opacity = 0; // Ensure it fully fades out
+            }
+        }
+
+        function showConfetti() {
+            const edges = [
+                { x: 0, y: 0 }, // Top-left corner
+                { x: canvas.width, y: 0 }, // Top-right corner
+                { x: 0, y: canvas.height }, // Bottom-left corner
+                { x: canvas.width, y: canvas.height } // Bottom-right corner
+            ];
+
+            function addConfettiPieces() {
+                edges.forEach(edge => {
+                    for (let i = 0; i < 500; i++) { // Add 50 confetti pieces from each edge
+                        confettiPieces.push(createConfettiPiece(edge.x, edge.y));
+                    }
+                });
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                addConfettiPieces(); // Continuously add new confetti pieces
+                confettiPieces.forEach((piece, index) => {
+                    updateConfettiPiece(piece);
+                    drawConfettiPiece(piece);
+                    // Remove confetti pieces that are fully faded
+                    if (piece.opacity <= 0) {
+                        confettiPieces.splice(index, 1);
+                    }
+                });
+                requestAnimationFrame(animate);
+            }
+
+            canvas.style.display = 'block';
+            animate();
+        }
+
+        function getRandomColor() {
+            const colors = ['#FF5722', '#FFC107', '#4CAF50', '#2196F3', '#9C27B0'];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        button.addEventListener('click', () => {
+            button.style.backgroundColor = 'green';
+            setTimeout(() => {
+                button.style.display = 'none';
+                showConfetti();
+                gifContainer.style.display = 'block'; // Show the GIF
+                audio.currentTime = 30; // Set audio to start at 30 seconds
+                audio.play(); // Play the audio
+            }, 300);
+        });
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
